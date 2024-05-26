@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from pytrends.request import TrendReq
+from pytrends.exceptions import TooManyRequestsError
+import time
 
 # Función para scrapear una web y obtener información básica de SEO
 def scrape_seo_info(url):
@@ -31,8 +33,15 @@ def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
     pytrends = TrendReq(hl='en-US', tz=360)
     pytrends.build_payload([keyword], cat=0, timeframe='today 12-m', geo=region, gprop='')
     
-    # Obtener sugerencias de palabras clave
-    related_queries = pytrends.related_queries()[keyword]['top']
+    while True:
+        try:
+            # Obtener sugerencias de palabras clave
+            related_queries = pytrends.related_queries()[keyword]['top']
+            break
+        except TooManyRequestsError:
+            print("Too many requests, waiting for 60 seconds...")
+            time.sleep(60)
+    
     if related_queries is None:
         return pd.DataFrame(columns=['query', 'value'])
     
