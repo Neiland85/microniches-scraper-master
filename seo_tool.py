@@ -37,13 +37,14 @@ def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
         try:
             # Obtener sugerencias de palabras clave
             related_queries = pytrends.related_queries()[keyword]['top']
+            if related_queries is None:
+                print(f"No related queries found for {keyword}")
+                return pd.DataFrame(columns=['query', 'value'])
+            print(f"Related queries for {keyword}:", related_queries)
             break
         except TooManyRequestsError:
             print("Too many requests, waiting for 60 seconds...")
             time.sleep(60)
-    
-    if related_queries is None:
-        return pd.DataFrame(columns=['query', 'value'])
     
     # Filtrar por KD bajo (simulación, ya que Google Trends no proporciona KD directamente)
     # Aquí asumimos que el valor de interés es inversamente proporcional a la dificultad
@@ -64,7 +65,11 @@ if __name__ == "__main__":
     seo_info = scrape_seo_info(url)
     print("SEO Info:", seo_info)
     
-    base_keyword = 'servicios web online'
+    base_keyword = 'posicionamiento seo'
     microniches = create_microniche(base_keyword)
     print("Microniches:", microniches)
+    
+    # Llamada a la acción personalizada
+    print("\n¡Gracias por usar Microniches Scraper Master!")
+    print("Para más información y herramientas, visita nuestro sitio web.")
 
