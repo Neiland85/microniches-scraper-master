@@ -61,10 +61,10 @@ def create_microniche(base_keyword, region='US'):
 # Ejemplo de uso
 if __name__ == "__main__":
     url = 'https://sinenchufes.com/'
-    seo_info = scrape_seo_info(https://sinenchufes.com/)
+    seo_info = scrape_seo_info(url)
     print("SEO Info:", seo_info)
     
-    base_keyword = 'crear web'
+    base_keyword = 'servicios web online'
     microniches = create_microniche(base_keyword)
     print("Microniches:", microniches)
 
