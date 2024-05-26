@@ -1,0 +1,61 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+from pytrends.request import TrendReq
+
+# Función para scrapear una web y obtener información básica de SEO
+def scrape_seo_info(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # Obtener título
+    title = soup.title.string if soup.title else "No title"
+    
+    # Obtener meta descripción
+    description_tag = soup.find('meta', attrs={'name': 'description'})
+    description = description_tag['content'] if description_tag else "No description"
+    
+    # Obtener meta keywords
+    keywords_tag = soup.find('meta', attrs={'name': 'keywords'})
+    keywords = keywords_tag['content'] if keywords_tag else "No keywords"
+    
+    return {
+        'URL': url,
+        'Title': title,
+        'Description': description,
+        'Keywords': keywords
+    }
+
+# Función para buscar palabras clave transaccionales
+def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
+    pytrends = TrendReq(hl='en-US', tz=360)
+    pytrends.build_payload([keyword], cat=0, timeframe='today 12-m', geo=region, gprop='')
+    
+    # Obtener sugerencias de palabras clave
+    related_queries = pytrends.related_queries()[keyword]['top']
+    if related_queries is None:
+        return pd.DataFrame(columns=['query', 'value'])
+    
+    # Filtrar por KD bajo (simulación, ya que Google Trends no proporciona KD directamente)
+    # Aquí asumimos que el valor de interés es inversamente proporcional a la dificultad
+    low_kd_keywords = related_queries[related_queries['value'] <= low_kd_threshold]
+    
+    return low_kd_keywords
+
+# Función principal para crear micronichos
+def create_microniche(base_keyword, region='US'):
+    low_kd_keywords = find_transactional_keywords(base_keyword, region)
+    microniches = low_kd_keywords['query'].tolist()
+    
+    return microniches
+
+# Ejemplo de uso
+if __name__ == "__main__":
+    url = 'https://www.example.com'
+    seo_info = scrape_seo_info(url)
+    print("SEO Info:", seo_info)
+    
+    base_keyword = 'buy shoes online'
+    microniches = create_microniche(base_keyword)
+    print("Microniches:", microniches)
+
