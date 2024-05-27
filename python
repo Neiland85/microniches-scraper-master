@@ -1,75 +1,34 @@
-import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 from pytrends.request import TrendReq
 from pytrends.exceptions import TooManyRequestsError
 import time
 
-# Función para scrapear una web y obtener información básica de SEO
-def scrape_seo_info(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+# Función para buscar palabras clave transaccionales con bajo KD
+def find_low_kd_keywords(keyword, region='ES', timeframe='today 1-m', low_kd_threshold=20):
+    pytrends = TrendReq(hl='es-ES', tz=360)
+    pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=region, gprop='')
     
-    # Obtener título
-    title = soup.title.string if soup.title else "No title"
-    
-    # Obtener meta descripción
-    description_tag = soup.find('meta', attrs={'name': 'description'})
-    description = description_tag['content'] if description_tag else "No description"
-    
-    # Obtener meta keywords
-    keywords_tag = soup.find('meta', attrs={'name': 'keywords'})
-    keywords =related_ keywords_tag['content'] if keywords_tag else "No keywords"
-    
-    return {
-        'URL': url,
-        'Title': title,
-        'Description': description,
-        'Keywords': keywords
-    }
-
-# Función para buscar palabras clave transaccionales
-def find_related_transactional_keywords(keyword, region='ES', low_kd_threshold=20):
-    pytrends = TrendReq(hl='en-US', tz=360)
-    pytrends.build_payload([keyword], cat=0, timeframe='today 12-m', geo=region, gprop='')
-    
-    while True:
-        try:
-            # Obtener sugerencias de palabras clave
-            related_queries = pytrends.related_queries()[related_keyword]['top']
-            if related_queries is None:
-                print(f"No related queries found for {related_keyword}")
-                return pd.DataFrame(columns=['query', 'value'])
-            print(f"Related queries for {keyword}:", related_queries)
-            break
-        except TooManyRequestsError:
-            print("Too many requests, waiting for 60 seconds...")
-            time.sleep(60)
-    
-    # Filtrar por KD bajo (simulación, ya que Google Trends no proporciona KD directamente)
-    # Aquí asumimos que el valor de interés es inversamente proporcional a la dificultad
-    low_kd_keywords = related_queries[related_queries['value'] <= low_kd_threshold]
-    
-    return low_kd_related_keywords
-
-# Función principal para crear micronichos
-def create_microniche(base_keyword, region='ES'):
-    low_kd_keywords = find_transactional_keywords(base_keyword, region)
-    microniches = low_kd_keywords['query'].tolist()
-    
-    return microniches
+    try:
+        # Obtener sugerencias de palabras clave
+        related_queries = pytrends.related_queries()[keyword]['top']
+        if related_queries is None:
+            print(f"No related queries found for {keyword}")
+            return pd.DataFrame(columns=['query', 'value'])
+        print(f"Related queries for {keyword}:", related_queries)
+        
+        # Filtrar por KD bajo
+        low_kd_keywords = related_queries[related_queries['value'] <= low_kd_threshold]
+        return low_kd_keywords
+    except TooManyRequestsError:
+        print("Too many requests, please try again later.")
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    url = 'https://google.com/'
-    seo_info = scrape_seo_info(url)
-    print("Keyword_planner_info:", seo_info)
-    
-    base_keyword = 'palabras_clave_relacionadas'
-    microniches = create_microniche(base_keyword)
-    print("Microniches:", microniches)
-    
-    # Llamada a la acción personalizada
-    print("\n¡Gracias por usar Microniches Scraper Master!")
-    print("Para más información y herramientas, visita nuestro sitio web.")
+    base_keyword = 'negocio'
+    low_kd_keywords = find_low_kd_keywords(base_keyword)
+    if low_kd_keywords.empty:
+        print("No low KD keywords found.")
+    else:
+        related_keywords = low_kd_keywords['query'].tolist()
+        print("Related keywords with low KD:", related_keywords)
 
