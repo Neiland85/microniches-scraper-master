@@ -1,75 +1,28 @@
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-from pytrends.request import TrendReq
-from pytrends.exceptions import TooManyRequestsError
-import time
+import nltk
+from nltk.corpus import wordnet
 
-# Función para scrapear una web y obtener información básica de SEO
-def scrape_seo_info(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    # Obtener título
-    title = soup.title.string if soup.title else "No title"
-    
-    # Obtener meta descripción
-    description_tag = soup.find('meta', attrs={'name': 'description'})
-    description = description_tag['content'] if description_tag else "No description"
-    
-    # Obtener meta keywords
-    keywords_tag = soup.find('meta', attrs={'name': 'keywords'})
-    keywords = keywords_tag['content'] if keywords_tag else "No keywords"
-    
-    return {
-        'URL': url,
-        'Title': title,
-        'Description': description,
-        'Keywords': keywords
-    }
+# Descarga los datos necesarios de NLTK
+nltk.download('wordnet')
 
-# Función para buscar palabras clave transaccionales
-def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
-    pytrends = TrendReq(hl='en-US', tz=360)
-    pytrends.build_payload([keyword], cat=0, timeframe='today 12-m', geo=region, gprop='')
-    
-    while True:
-        try:
-            # Obtener sugerencias de palabras clave
-            related_queries = pytrends.related_queries()[keyword]['top']
-            if related_queries is None:
-                print(f"No related queries found for {keyword}")
-                return pd.DataFrame(columns=['query', 'value'])
-            print(f"Related queries for {keyword}:", related_queries)
-            break
-        except TooManyRequestsError:
-            print("Too many requests, waiting for 60 seconds...")
-            time.sleep(60)
-    
-    # Filtrar por KD bajo (simulación, ya que Google Trends no proporciona KD directamente)
-    # Aquí asumimos que el valor de interés es inversamente proporcional a la dificultad
-    low_kd_keywords = related_queries[related_queries['value'] <= low_kd_threshold]
-    
-    return low_kd_keywords
+# Función para encontrar palabras relacionadas con las palabras clave
+def find_related_words(keywords):
+    related_words = []
+    for keyword in keywords:
+        synsets = wordnet.synsets(keyword)
+        for synset in synsets:
+            related_words.extend(synset.lemma_names())
+    return related_words
 
 # Función principal para crear micronichos
-def create_microniche(base_keyword, region='US'):
-    low_kd_keywords = find_transactional_keywords(base_keyword, region)
-    microniches = low_kd_keywords['query'].tolist()
-    
+def create_microniche(base_keywords, region='ES'):
+    related_words = find_related_words(base_keywords)
+    # Aquí puedes usar las palabras relacionadas para crear micronichos
+    microniches = related_words
     return microniches
 
-# Ejemplo de uso
+# Ejemplo de uso 
 if __name__ == "__main__":
-    url = 'https://sinenchufes.com/'
-    seo_info = scrape_seo_info(url)
-    print("SEO Info:", seo_info)
-    
-    base_keyword = 'posicionamiento seo'
-    microniches = create_microniche(base_keyword)
+    base_keywords = ['palabras', 'clave', 'seo']
+    microniches = create_microniche(base_keywords)
     print("Microniches:", microniches)
-    
-    # Llamada a la acción personalizada
-    print("\n¡Gracias por usar Microniches Scraper Master!")
-    print("Para más información y herramientas, visita nuestro sitio web.")
 

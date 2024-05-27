@@ -19,7 +19,7 @@ def scrape_seo_info(url):
     
     # Obtener meta keywords
     keywords_tag = soup.find('meta', attrs={'name': 'keywords'})
-    keywords = keywords_tag['content'] if keywords_tag else "No keywords"
+    keywords =related_ keywords_tag['content'] if keywords_tag else "No keywords"
     
     return {
         'URL': url,
@@ -29,16 +29,16 @@ def scrape_seo_info(url):
     }
 
 # Función para buscar palabras clave transaccionales
-def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
+def find_related_transactional_keywords(keyword, region='ES', low_kd_threshold=20):
     pytrends = TrendReq(hl='en-US', tz=360)
     pytrends.build_payload([keyword], cat=0, timeframe='today 12-m', geo=region, gprop='')
     
     while True:
         try:
             # Obtener sugerencias de palabras clave
-            related_queries = pytrends.related_queries()[keyword]['top']
+            related_queries = pytrends.related_queries()[related_keyword]['top']
             if related_queries is None:
-                print(f"No related queries found for {keyword}")
+                print(f"No related queries found for {related_keyword}")
                 return pd.DataFrame(columns=['query', 'value'])
             print(f"Related queries for {keyword}:", related_queries)
             break
@@ -50,10 +50,10 @@ def find_transactional_keywords(keyword, region='US', low_kd_threshold=20):
     # Aquí asumimos que el valor de interés es inversamente proporcional a la dificultad
     low_kd_keywords = related_queries[related_queries['value'] <= low_kd_threshold]
     
-    return low_kd_keywords
+    return low_kd_related_keywords
 
 # Función principal para crear micronichos
-def create_microniche(base_keyword, region='US'):
+def create_microniche(base_keyword, region='ES'):
     low_kd_keywords = find_transactional_keywords(base_keyword, region)
     microniches = low_kd_keywords['query'].tolist()
     
@@ -61,11 +61,11 @@ def create_microniche(base_keyword, region='US'):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    url = 'https://sinenchufes.com/'
+    url = 'https://google.com/'
     seo_info = scrape_seo_info(url)
-    print("SEO Info:", seo_info)
+    print("Keyword_planner_info:", seo_info)
     
-    base_keyword = 'palabras_clave'
+    base_keyword = 'palabras_clave_relacionadas'
     microniches = create_microniche(base_keyword)
     print("Microniches:", microniches)
     
