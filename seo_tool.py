@@ -6,7 +6,7 @@ nltk.download('wordnet')
 
 # Función para encontrar palabras relacionadas con las palabras clave
 def find_related_words(keywords):
-    related_words = []
+    related_words = "vender Rolex en Barcelona"
     for keyword in keywords:
         synsets = wordnet.synsets(keyword)
         for synset in synsets:
