@@ -9,6 +9,7 @@ The modernized core separates:
 - HTTP collection with bounded timeouts and retries;
 - HTML parsing;
 - a normalized `PageSnapshot` data contract;
+- a `CollectionResult` carrying final URL, UTC collection time and content SHA-256;
 - a small composition pipeline;
 - tests for parsing and retry behavior.
 
@@ -30,8 +31,11 @@ Example:
 ```python
 from microniches.pipeline import collect_page
 
-snapshot = collect_page("https://example.com")
-print(snapshot)
+result = collect_page("https://example.com")
+print(result.snapshot)
+print(result.final_url)
+print(result.collected_at)
+print(result.content_sha256)
 ```
 
 ## Architecture
@@ -42,6 +46,7 @@ URL
   -> HTML
   -> Parser
   -> PageSnapshot contract
+  -> CollectionResult
   -> Consumer / export
 ```
 

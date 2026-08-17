@@ -17,7 +17,7 @@ def fetch_html(
     max_retries: int = 2,
     backoff: float = 0.5,
     sleep: Callable[[float], None] = time.sleep,
-) -> tuple[int, str]:
+) -> tuple[int, str, str]:
     """Fetch a page with bounded retries for transient upstream failures.
 
     This collector intentionally does not attempt to bypass access controls,
@@ -38,7 +38,7 @@ def fetch_html(
                         sleep(backoff * (2**attempt))
                         continue
                 response.raise_for_status()
-                return response.status_code, response.text
+                return response.status_code, response.text, str(response.url)
             except (httpx.HTTPError, httpx.TimeoutException) as exc:
                 last_error = exc
                 if attempt < max_retries:
