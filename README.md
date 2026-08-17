@@ -1,36 +1,56 @@
-# microniches-scraper-master
-Una herramienta simple para scrapear webs y obtener información de SEO.
-
 # Microniches Scraper Master
 
-Una herramienta simple para scrapear webs y obtener información de SEO.
+A small Python data-acquisition prototype evolved from an earlier SEO/scraping experiment.
 
-## Instalación
+## Current scope
 
-1. Clonar el repositorio:
-   ```sh
-   git clone https://github.com/<YOUR_GITHUB_USERNAME>/microniches-scraper-master.git
+The modernized core separates:
 
-### Ejecución
+- HTTP collection with bounded timeouts and retries;
+- HTML parsing;
+- a normalized `PageSnapshot` data contract;
+- a small composition pipeline;
+- tests for parsing and retry behavior.
 
-   ```sh
-   activar entorno virtual 'source venv/bin/activate'
-   instalar dependencias 'pip install requests beautifulsoup4 pandas pytrends'
-   ejecutar script 'python seo_tool.py'
+The collector deliberately does **not** attempt to bypass authentication, CAPTCHAs, WAFs, anti-bot controls, or other access restrictions. Collection policy is part of the system boundary.
 
+## Development
 
-### Tupolla gorda!
-Ojo al dato!       Ajustar script en shell de forma manual
-nano python seo_tool.py  # Se cambian las variables de interés
-git add .
-git comit -m "Cambios en variables de interes"
-git push origin main
+Requires Python 3.11+.
 
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[test]'
+pytest
+```
 
+Example:
 
+```python
+from microniches.pipeline import collect_page
 
+snapshot = collect_page("https://example.com")
+print(snapshot)
+```
 
+## Architecture
 
+```text
+URL
+  -> Collector
+  -> HTML
+  -> Parser
+  -> PageSnapshot contract
+  -> Consumer / export
+```
 
-   
+The design keeps collection policy independent from parsing and downstream consumers. This makes retry behavior, parser correctness and data contracts independently testable.
 
+## Historical context
+
+The repository contains the original prototype history. Earlier versions combined `requests`, BeautifulSoup and `pytrends`, and introduced explicit handling for upstream rate limiting. The current implementation is a deliberately small modernization of the legitimate data-acquisition core rather than a claim of distributed scraping at industrial scale.
+
+## Responsible use
+
+Only collect data where the access method and intended use are permitted. Respect applicable terms, robots policies where relevant, rate limits, privacy requirements and other access controls.
